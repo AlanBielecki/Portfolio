@@ -1,0 +1,208 @@
+Sheet1 Code:
+
+Sub copyfile_signoff()
+Sheets("XXX").Copy
+Application.DisplayAlerts = False
+Dim File_Name As String
+File_Name = "Z:\RAPORTY\XXX"
+iRow = Sheets("XXX").UsedRange.SpecialCells(xlCellTypeLastCell).Rows.Count
+With ActiveWorkbook
+    .SaveAs Filename:=File_Name & "XXX" & Sheets("XXX").UsedRange.SpecialCells(xlCellTypeLastCell).Cells(iRow, 2).Value & ".xlsx"
+    .Close savechanges:=True
+End With
+Application.DisplayAlerts = True
+
+End Sub
+Sub CreateOutSignOff()
+  
+Dim OutApp As Object
+Dim OutMail As Object
+Dim email_body As String
+Dim FilteredRange As Range
+Dim FilteredRange2 As Range
+Dim BAName As Range
+Dim EmailAdress As Range
+Dim File_Name As String
+Dim File_Name_final As String
+Dim i As Integer
+
+Set OutApp = CreateObject("Outlook.Application")
+Set FilteredRange = Sheets("XXX").Range("B2:B" & Cells(Rows.Count, "B").End(xlUp).Row)
+Set FilteredRange1 = Sheets("XXX").Range("AN2:AN" & Cells(Rows.Count, "AN").End(xlUp).Row)
+Set BAName = FilteredRange.SpecialCells(xlCellTypeVisible).Cells(1)
+Set EmailAdress = FilteredRange1.SpecialCells(xlCellTypeVisible).Cells(1)
+Set OutMail = OutApp.CreateItem(0)
+
+File_Name = "Z:\RAPORTY\XXX"
+File_Name_final = File_Name & "XXX.xlsx"
+i = 2000
+email_body = "<font style=""font-family: XXX ; font-size: 11pt;""/font><p>Dear XXX,</p><p>To give you a better XXX.</p>" & _
+             "<p>XXX.</p>" & _
+             "<p>XXX).</p>" & _
+             "<p>XXX </p>" & _
+              "<p><a href='mailto:XXX'>Email to XXX</a></p>" & _
+              "<p>Many thanks in advance.</p>" & _
+              "<p>Kind regards,</p>" & _
+              "<p> XXX </p>"
+
+On Error Resume Next
+
+  With OutMail
+  .SentOnBehalfOfName = "XXX"
+  .To = EmailAdress.Value
+  .CC = "XXX; XXX"
+  .BCC = ""
+  .Subject = "XXX" & " " & BAName.Value & "" & " - XXX"
+  .Display
+  .HTMLBody = email_body
+  .Attachments.Add File_Name_final
+  End With
+
+  On Error GoTo 0
+  
+Set OutMail = Nothing
+Set OutApp = Nothing
+Set FilteredRange = Nothing
+Set FilteredRange1 = Nothing
+Set BAName = Nothing
+
+
+End Sub
+
+
+Sheet2 Code:
+
+Sub copyfile_perf()
+Sheets("XXX").Copy
+Application.DisplayAlerts = False
+Dim File_Name As String
+File_Name = "XXX "
+iRow = Sheets("XXX").UsedRange.SpecialCells(xlCellTypeLastCell).Rows.Count
+With ActiveWorkbook
+    .SaveAs Filename:=File_Name & "XXX" & Sheets("XXX").UsedRange.SpecialCells(xlCellTypeLastCell).Cells(iRow, 2).Value & ".xlsx"
+    .Close savechanges:=True
+End With
+Application.DisplayAlerts = True
+
+End Sub
+
+Sub CreateOutPerformance()
+  
+Dim OutApp As Object
+Dim OutMail As Object
+Dim email_body As String
+Dim FilteredRange As Range
+Dim FilteredRange2 As Range
+Dim BAName As Range
+Dim EmailAdress As Range
+Dim File_Name As String
+Dim File_Name_final As String
+Dim i As Integer
+
+Set OutApp = CreateObject("Outlook.Application")
+Set FilteredRange = Sheets("XXX").Range("B2:B" & Cells(Rows.Count, "B").End(xlUp).Row)
+Set FilteredRange1 = Sheets("XXX").Range("AN2:AN" & Cells(Rows.Count, "AN").End(xlUp).Row)
+Set BAName = FilteredRange.SpecialCells(xlCellTypeVisible).Cells(1)
+Set EmailAdress = FilteredRange1.SpecialCells(xlCellTypeVisible).Cells(1)
+Set OutMail = OutApp.CreateItem(0)
+
+File_Name = "XXX"
+File_Name_final = File_Name & "XXX.xlsx"
+i = 2000
+email_body = "<font style=""font-family: XXX ; font-size: 11pt;""/font><p>Dear XXX,</p><p>XXX.</p>" & _
+             "<p>XXX.</p>" & _
+             "<p>XXX </p>" & _
+              "<p><a href='mailto:XXX'>Email to XXX</a></p>" & _
+              "<p>Many thanks in advance.</p>" & _
+              "<p>Kind regards,</p>" & _
+              "<p> XXX </p>"
+
+On Error Resume Next
+
+  With OutMail
+  .To = EmailAdress.Value
+  .CC = "XXX"
+  .BCC = ""
+  .Subject = "XXX" & " " & BAName.Value & "" & " "
+  .Display
+  .HTMLBody = email_body
+  .Attachments.Add File_Name_final
+  End With
+
+  On Error GoTo 0
+  
+Set OutMail = Nothing
+Set OutApp = Nothing
+Set FilteredRange = Nothing
+Set FilteredRange1 = Nothing
+Set BAName = Nothing
+
+End Sub
+
+
+Code for Module1:
+
+Sub Button1_Click()
+
+Dim ws As Worksheet
+Dim lastRow As Long
+Dim rng As Range
+Dim cell As Range
+
+Set ws = ThisWorkbook.Worksheets("XXX")
+lastRow = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row
+
+For Each cell In ws.Range("I1:K" & lastRow)
+If cell.Value = "No" Then
+Set rng = ws.Range("A" & cell.Row & ":AN" & cell.Row)
+rng.Interior.Color = xlNone
+End If
+Next cell
+
+For Each cell In ws.Range("I1:I" & lastRow)
+If cell.Value = "Yes" Then
+  If WorksheetFunction.CountA(ws.Range("N" & cell.Row & ":N" & cell.Row)) = 0 Then
+Set rng = ws.Range("A" & cell.Row & ":AN" & cell.Row)
+rng.Interior.Color = RGB(255, 93, 93)
+    End If
+  End If
+Next cell
+
+For Each cell In ws.Range("J1:J" & lastRow)
+If cell.Value = "Yes" Then
+  If WorksheetFunction.CountA(ws.Range("P" & cell.Row & ":P" & cell.Row)) = 0 Then
+Set rng = ws.Range("A" & cell.Row & ":AN" & cell.Row)
+rng.Interior.Color = RGB(255, 93, 93)
+    End If
+  End If
+Next cell
+
+
+End Sub
+
+
+Code for Module2:
+
+
+Sub filter_signoff()
+Sheets("XXX").Select
+ActiveSheet.ListObjects("XXX").Range.AutoFilter _
+Field:=2, Criteria1:=UserForm1.ComboBox1.Value
+Sheets("Email generator").Select
+End Sub
+Sub filter_perf()
+Sheets("XXX").Select
+ActiveSheet.ListObjects("XXX").Range.AutoFilter _
+Field:=2, Criteria1:=UserForm2.ComboBox1.Value
+Sheets("Email generator").Select
+End Sub
+
+
+Code for Module3:
+
+Sub Button2_Click()
+ThisWorkbook.RefreshAll
+
+MsgBox "Data have been refreshed! However you need to wait until new queries will be loaded (you can see that on down left corner)", vbInformation
+End Sub
+
