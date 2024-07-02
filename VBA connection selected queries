@@ -1,0 +1,53 @@
+Code for Module1:
+
+Sub Button1_Click()
+
+Dim nazwaZakladki As String
+Dim nazwaPliku As String
+Dim wb As Workbook
+Dim ws As Worksheet
+    
+    ' Podaj nazwę zakładki do zapisania
+    nazwaZakladki = "Search Results"
+    
+    ' Sprawdź, czy zakładka istnieje
+    If ZakladkaIstnieje(nazwaZakladki) Then
+        ' Utwórz nowy arkusz
+        Set wb = Workbooks.Add
+        Set ws = ThisWorkbook.Sheets(nazwaZakladki)
+                ws.Copy Before:=wb.Sheets(1)
+        wb.Sheets(1).Delete
+        nazwaPliku = ThisWorkbook.Path & "\" & nazwaZakladki & ".xlsx"
+        wb.SaveAs nazwaPliku
+        wb.Close False
+        MsgBox "Zakladka '" & nazwaZakladki & "' zostala zapisana jako nowy plik: " & nazwaPliku, vbInformation
+    Else
+        MsgBox "Zakladka o nazwie '" & nazwaZakladki & "' nie istnieje.", vbExclamation
+    End If
+End Sub
+
+Function ZakladkaIstnieje(nazwaZakladki As String) As Boolean
+    Dim ws As Worksheet
+    On Error Resume Next
+    Set ws = ThisWorkbook.Sheets(nazwaZakladki)
+    On Error GoTo 0
+    ZakladkaIstnieje = Not ws Is Nothing
+End Function
+
+Code for Module2:
+
+Sub RefreshPowerQueries()
+    Dim conn As WorkbookConnection
+    
+    ' Iteruj przez wszystkie połączenia w arkuszu
+    For Each conn In ThisWorkbook.Connections
+
+        ' Sprawdź, czy połączenie jest typu Power Query
+        If conn.Type = xlConnectionTypeOLEDB Then
+
+            ' Zainicjuj odświeżenie zapytania Power Query
+            conn.OLEDBConnection.BackgroundQuery = False
+            conn.Refresh
+        End If
+    Next conn
+End Sub
