@@ -1,0 +1,254 @@
+Code for Module1:
+
+Sub Macro1()
+    Dim WybranyPlik As Variant
+    Dim ws As Worksheet
+    Dim ostatniWiersz As Long
+    Dim ostatniWiersz2 As Long
+    Dim ostatniWiersz3 As Long
+    Dim rng As Range
+    Dim newWb As Workbook
+    Dim savePath As String
+    Dim fileName As String
+    Dim cell As Range
+    Dim RowsToDelete As Range
+    Dim nazwyKolumn As Variant ' Tablica przechowująca nazwy kolumn
+
+    ' Wybierz plik
+    WybranyPlik = Application.GetOpenFilename( _
+        FileFilter:="Microsoft Excel Files (*.xlsx), *.xlsx", _
+        MultiSelect:=False, Title:="File to Open")
+
+    ' Otwórz wybrany plik
+    Set newWb = Workbooks.Open(WybranyPlik)
+    Set ws = newWb.Sheets("Search Results")
+
+    ' Znajdź ostatni wiersz z danymi
+    ostatniWiersz = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row
+
+    ' Zapamiętaj nazwy kolumn
+    nazwyKolumn = ws.Range("A1:Z1").Value
+
+    ' Usuń formatowanie
+    ws.Cells.ClearFormats
+
+    ' Usuń tabelę
+    If ws.ListObjects.Count > 0 Then
+        ws.ListObjects(1).Unlist
+    End If
+
+    ' Przekształć zakres na surowe dane
+    ws.UsedRange.Copy
+    ws.Range("A1").PasteSpecial Paste:=xlPasteValues
+    Application.CutCopyMode = False
+
+    ' Przywróć nazwy kolumn
+    ws.Range("A1").Resize(1, UBound(nazwyKolumn, 2)).Value = nazwyKolumn
+    ws.Rows(1).Font.Color = RGB(0, 0, 0)
+   
+
+For Each cell In ws.Range("$A$1:$Z$" & ostatniWiersz)
+    cell.Interior.ColorIndex = xlNone
+Next cell
+
+    ws.Range("$A$1:$Z$" & ostatniWiersz).AutoFilter Field:=10, Criteria1:="No"
+
+    ostatniWiersz2 = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row
+
+    ws.Range("$A$2:$Z$" & ostatniWiersz2).Style = "Neutral"
+    ws.Range("$J$2:$J$" & ostatniWiersz2).Font.Color = -16776961
+    ws.Range("$J$2:$J$" & ostatniWiersz2).Font.TintAndShade = 0
+
+    ws.ShowAllData
+
+    ws.Range("$A$1:$Z$" & ostatniWiersz).AutoFilter Field:=13, Criteria1:="No"
+
+    ostatniWiersz3 = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row
+
+    ws.Range("$A$2:$Z$" & ostatniWiersz3).Style = "Neutral"
+    ws.Range("$M$2:$M$" & ostatniWiersz3).Font.Color = -16776961
+    ws.Range("$M$2:$M$" & ostatniWiersz3).Font.TintAndShade = 0
+
+    ws.ShowAllData
+
+        Set rgn = ws.Range("$A$2:$Z$" & ostatniWiersz)
+        rgn.AutoFilter Field:=1, Criteria1:=xlNone, Operator:=xlFilterNoFill
+
+    For Each cell In rgn.SpecialCells(xlCellTypeVisible)
+        If RowsToDelete Is Nothing Then
+            Set RowsToDelete = cell.EntireRow
+        Else
+            Set RowsToDelete = Union(RowsToDelete, cell.EntireRow)
+        End If
+    Next cell
+
+    ' Jeżli są wiersze do usunięcia, usuń je
+    If Not RowsToDelete Is Nothing Then
+        RowsToDelete.Delete
+    Else
+        MsgBox "Nie ma wierszy do usunięcia.", vbInformation
+    End If
+
+    ' Zamknij filtr
+    ws.AutoFilterMode = False
+
+    ' Zapisz i zapisz kopię pliku
+    savePath = "TU JEST ADRES FOLDERU Z PLIKAMI TYMCZASOWYMI"
+    fileName = "NAZWA PLIKU I ROZSZERZENIE"
+    newWb.SaveAs savePath & fileName
+   ' newWb.Close SaveChanges:=False
+
+    ' Komunikat o pomyślnym utworzeniu i zapisaniu kopii pliku
+    MsgBox "Kopia pliku została pomyślnie utworzona i zapisana w folderze: " & savePath, vbInformation
+
+End Sub
+
+Code for Module2:
+
+Sub RefreshPowerQueries()
+    Dim conn As WorkbookConnection
+    
+    ' Iteruj przez wszystkie połączenia w arkuszu
+    For Each conn In ThisWorkbook.Connections
+
+        ' Sprawdź, czy połączenie jest typu Power Query
+        If conn.Type = xlConnectionTypeOLEDB Then
+
+            ' Zainicjuj odświeżenie zapytania Power Query
+            conn.OLEDBConnection.BackgroundQuery = False
+            conn.Refresh
+        End If
+    Next conn
+End Sub
+
+
+Code for Module3:
+
+Sub filter()
+
+ Dim WartoscObjektu As Variant
+ Dim ostatniWiersz As Long
+ Dim wb As Workbook
+ Dim wb1 As Workbook
+ Dim ws As Worksheet
+ Dim Plik As String
+ Dim NazwaArkusza As String
+ 
+ 
+ Plik = "TU JEST ADRES PLIKU ŹRÓDŁOWEGO Z SUROWYMI DANYMI"
+ NazwaArkusza = "Search Results"
+ 
+ 
+ ' Ustaw zakres tabeli, która ma być filtrowana
+ Set wb = Workbooks.Open(Plik)
+ Set ws = wb.Sheets(NazwaArkusza)
+ ostatniWiersz = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row
+
+ ' Zakładając, że tabela znajduje się na arkuszu o nazwie "Nazwa_arkusza" w zakresie A1:C100
+ ' Pobierz wartoć wybraną w Combo Box
+' Set wb1 = ThisWorkbook.Sheets("Sheet1")
+ Set SourceRange = ThisWorkbook.Sheets("Sheet1").Range("P3")
+ 
+ WartoscObjektu = SourceRange.Value
+ ' Zastosuj filtr do tabeli
+ 
+ ThisWorkbook.Sheets("Search Results").Range("$A$1:$AD$" & ostatniWiersz).AutoFilter Field:=29, Criteria1:=WartoscObjektu
+ 
+ ThisWorkbook.Sheets("Sheet1").Activate
+ 
+End Sub
+
+Code for Module4:
+
+Sub WygenerujEmaile()
+    Dim OutlookApp As Object
+    Dim OutlookMail As Object
+    Dim ws As Worksheet
+    Dim rng As Range
+    Dim emailAddr As String
+    Dim filePath2 As String
+    Dim newWorkbook As Workbook
+    Dim email_body As String
+    
+    
+    ' Ustaw arkusz, na którym znajduje się tabela
+    Set ws = ThisWorkbook.Sheets("Search Results")
+    
+    ' Inicjalizacja Outlooka
+    Set OutlookApp = CreateObject("Outlook.Application")
+    Set OutlookMail = OutlookApp.CreateItem(0)
+    
+
+    For i = 2 To ws.Cells(ws.Rows.Count, 29).End(xlUp).Row
+      If Not ws.Rows(i).Hidden Then
+        Set rng = ws.Cells(i, 30)
+        Exit For
+      End If
+    Next i
+    
+    If Not rng Is Nothing Then
+    
+    emailAddr = rng.Value
+    
+    Set newWorkbook = Workbooks.Add
+    ws.Copy Before:=newWorkbook.Sheets(1)
+    filePath2 = "ADRES PLIKÓW DO ZAŁĄCZNIKA"
+    
+    newWorkbook.SaveAs filePath2
+    newWorkbook.Close
+    
+    Set newWorkbook = Nothing
+    
+    email_body = "<font style="font-family:FONT DO TREŚCI EMAIL”; font-size: 11pt;""/font><p> TREŚĆ,</p><p>TREŚĆ </p>" & _
+                 "<p> TREŚĆ.</p>" & _
+                 "<p> TREŚĆ </p>" & _
+                 "<p> TREŚĆ.</p>" & _
+                 "<p> TREŚĆ,</p>" & _
+                 "<p> TREŚĆ </p>"
+              
+        ' Utwórz nowy e-mail
+        With OutlookMail
+            .To = emailAddr
+            .Subject = "Inactive users report"
+            .HTMLBody = email_body
+            .Attachments.Add filePath2
+            .Display ' Możesz użyć .Send aby wysłać e-mail automatycznie bez pokazywania go
+        End With
+    
+     End If
+    ' Zwolnij zasoby Outlooka
+    Set OutlookMail = Nothing
+    Set OutlookApp = Nothing
+    
+     
+End Sub
+
+PowerQuery Code1:
+
+let
+    Source = Excel.Workbook(File.Contents("TU JEST ADRES PLIKU ŹRÓDŁOWEGO Z SUROWYMI DANYMI"), null, true),
+    #"Źródło1" = Source{[Item="Źródło2",Kind="Źródło2"]}[Data],
+    #"Promoted Headers" = Table.PromoteHeaders(#"Źródło2", [PromoteAllScalars=true]),
+    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{{"XXX", type text}, {"Contact email", type text}, {"Folder", type any}, {"OE Code- 2 Digit", type text}})
+in
+    #"Changed Type"
+
+
+PowerQuery Code2:
+
+let
+    Source = Excel.Workbook(File.Contents ‘TU JEST ADRES PLIKU ŹRÓDŁOWEGO Z SUROWYMI DANYMI"), null, true),
+    #"Search Results_Sheet" = Source{[Item="Search Results",Kind="Sheet"]}[Data],
+    #"Promoted Headers" = Table.PromoteHeaders(#"Search Results_Sheet", [PromoteAllScalars=true]),
+    #"Changed Type1" = Table.TransformColumnTypes(#"Promoted Headers",{{"XXX", type date}, {"XXX", type date}, {"XXX", type date}, {"XXX", type date}, {"XXX", type date}, {"XXX", type date}}),
+    #"Added Custom Column" = Table.AddColumn(#"Changed Type1", "XXX", each let splitXXX = Splitter.SplitTextByDelimiter(", ", QuoteStyle.None)([#"XXX"]) in Text.Start(splitXXX{1}?, 2), type text),
+    #"Added Custom Column1" = Table.AddColumn(#"Added Custom Column", "XXX", each let splitXXX = Splitter.SplitTextByDelimiter(", ", QuoteStyle.None)([#"XXX"]) in Text.Start(splitXXX{1}?, 2), type text),
+    #"Inserted Removed Characters" = Table.AddColumn(#"Added Custom Column1", "XXX", each Text.Remove([#"XXX"], {"X", "X".."X", "X", "X"}), type text),
+    #"Added Conditional Column1" = Table.AddColumn(#"Inserted Removed Characters", "X", each if [#"XXX"] = “X" then "X" else if [#"X"] = "X" then "X" else if [#"XXX"] = "X" then "X" else if [#"XXX"] = "X" then "X" else [#"XXX type text),
+    #"Added Conditional Column" = Table.AddColumn(#"Added Conditional Column1", "Custom", each if [Performance Receiver Is Active] = "No" then [#"XXX"] else [#"XXX"]),
+    #"Renamed Columns" = Table.RenameColumns(#"Added Conditional Column",{{"Custom", "XXX"}}),
+    #"Removed Columns" = Table.RemoveColumns(#"Renamed Columns",{"XXX", "XXX", "XXX"}),
+    #"Added Custom4" = Table.FuzzyNestedJoin(#"Removed Columns", {"XXX"}, Logic_email, {"OE Code- 2 Digit"}, "LOGIC", JoinKind.LeftOuter, [IgnoreCase=true, IgnoreSpace=true, Threshold=0.1]),
+    #"Added Custom5" = Table.ExpandTableColumn(#"Added Custom4", "LOGIC", {"New BA name", "Contact email"}, {"XXX", "XXX"})
+in
+    #"Added Custom5"
